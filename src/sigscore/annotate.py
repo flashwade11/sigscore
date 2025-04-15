@@ -8,7 +8,7 @@ from tqdm.rich import tqdm
 from .core import compute_signature_scores
 
 
-def assign_MP_to_cells(
+def annotate_signatures_to_cells(
     adata: AnnData,
     signatures: Dict[str, List[str]],
     min_conserved_genes: float = 0.4,
@@ -36,10 +36,11 @@ def assign_MP_to_cells(
         return None
     return MP_for_cells[MP_for_cells.map(MP_to_keep)]
 
-def assgin_MP_to_samples(
+def annotate_signatures_per_sample(
     adata: AnnData,
     signatures: Dict[str, List[str]],
     sample_key: str,
+    added_key: str = "sigscore_annotation",
     parallel: bool = False,
     n_cpus: int = 1,
     min_conserved_genes: float = 0.4,
@@ -56,7 +57,7 @@ def assgin_MP_to_samples(
         if n_cpus < 1 and not isinstance(n_cpus, int):
             raise ValueError("n_cpus must be a positive integer")
         results = Parallel(n_jobs=n_cpus, verbose=verbose)(
-            delayed(assign_MP_to_cells)(
+            delayed(annotate_signatures_to_cells)(
                 adata=sample_adata,
                 signatures=signatures,
                 min_conserved_genes=min_conserved_genes,
@@ -67,12 +68,13 @@ def assgin_MP_to_samples(
     else:
         results = []
         for sample_adata in tqdm(sample_adata_list):
-            results.append(assign_MP_to_cells(
+            results.append(annotate_signatures_to_cells(
                 adata=sample_adata,
                 signatures=signatures,
                 min_conserved_genes=min_conserved_genes,
                 min_MP_score=min_MP_score,
                 min_cell_fraction=min_cell_fraction
             ))
-    results = [result for result in results if result is not None]
-    return pd.concat(results)
+    results = pd.concat([result for result in results if result is not None])
+    adata.obs[added_key] = results
+    return results

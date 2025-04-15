@@ -7,23 +7,23 @@ from anndata import AnnData
 from scipy.sparse import issparse
 
 
-def filter_sigs(
+def filter_signatures(
     signatures: Dict[str, List[str]],
-    ref: List[str],
+    reference_genes: List[str],
     conserved: float = 0.7
 ) -> Dict[str, List[str]] | None:
     all_genes = []
     for gene_list in signatures.values():
         all_genes.extend(gene_list)
     
-    if all(gene in ref for gene in all_genes):
+    if all(gene in reference_genes for gene in all_genes):
         return signatures
     
     num_original_sigs = len(signatures)
     num_original_genes_per_sig = {name: len(genes) for name, genes in signatures.items()}
     
     filtered_sigs = {
-        name: [gene for gene in genes if gene in ref] \
+        name: [gene for gene in genes if gene in reference_genes] \
             for name, genes in signatures.items()
     }
     
@@ -59,9 +59,9 @@ def compute_base_signature_scores(
     gene_names: List[str],
     conserved: float = 0.7,
 ) -> pd.DataFrame:
-    filtered_sigs = filter_sigs(
+    filtered_sigs = filter_signatures(
         signatures=signatures,
-        ref=gene_names,
+        reference_genes=gene_names,
         conserved=conserved
     )
     
@@ -119,7 +119,7 @@ def compute_signature_scores(
     replace: bool = False,
     key_added: str = "sig_scores",
 ) -> pd.DataFrame:
-    filtered_sigs = filter_sigs(signatures=signatures, ref=adata.var_names, conserved=conserved)
+    filtered_sigs = filter_signatures(signatures=signatures, reference_genes=adata.var_names, conserved=conserved)
     if sample_key is not None:
         all_scores = []
         all_samples = adata.obs[sample_key].unique()
