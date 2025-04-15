@@ -1,0 +1,32 @@
+[project]
+name = "sigscore"
+version = "0.1.0"
+description = "A fast, lightweight, and parallelizable Python library for gene signature scoring in single-cell RNA-seq data."
+authors = [
+    { name = "Wade Huang", email = "fastwade11@gmail.com" }
+]
+dependencies = [
+    "anndata>=0.11.4",
+    "hdf5plugin>=5.1.0",
+    "joblib>=1.4.2",
+    "numpy>=1.23,<2",
+    "pandas>=2.2.3",
+    "scipy>=1.15.2",
+    "tqdm>=4.67.1",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sigscore"]
