@@ -47,15 +47,13 @@ def annotate_signatures_per_sample(
     min_MP_score: float = 0.0,
     min_cell_fraction: float = 0.05,
     verbose: int = 10,
-) -> pd.DataFrame:
-    sample_adata_list = [
-        adata[adata.obs[sample_key] == sample].copy() \
-            for sample in adata.obs[sample_key].unique()
-    ]
+) -> pd.DataFrame:    
+    samples = adata.obs[sample_key].unique()
     
     if parallel:
-        if n_cpus < 1 and not isinstance(n_cpus, int):
-            raise ValueError("n_cpus must be a positive integer")
+        if n_cpus <= 1 and not isinstance(n_cpus, int):
+            raise ValueError("n_cpus must be a positive integer (>= 2) if parallel=True")
+        sample_adata_list = [adata[adata.obs[sample_key] == sample].copy() for sample in samples]
         results = Parallel(n_jobs=n_cpus, verbose=verbose)(
             delayed(annotate_signatures_to_cells)(
                 adata=sample_adata,
@@ -67,9 +65,9 @@ def annotate_signatures_per_sample(
         )
     else:
         results = []
-        for sample_adata in tqdm(sample_adata_list):
+        for sample in tqdm(samples):
             results.append(annotate_signatures_to_cells(
-                adata=sample_adata,
+                adata=adata[adata.obs[sample_key] == sample],
                 signatures=signatures,
                 min_conserved_genes=min_conserved_genes,
                 min_MP_score=min_MP_score,
